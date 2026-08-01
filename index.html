@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>都道府県＆県庁所在地 神経衰弱 | 異名ペア19完全攻略</title>
+    <meta name="description" content="都道府県名と県庁所在地名が異なる全国19の都道府県だけを集めた神経衰弱ゲーム！楽しく遊んで完全暗記しよう！" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;800&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!-- Canvas for Confetti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-container">
+      <!-- App Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <div class="logo-badge">
+            <span class="logo-icon">🗾</span>
+          </div>
+          <div class="title-group">
+            <h1 class="main-title">県庁所在地 神経衰弱</h1>
+            <span class="sub-title">～ 都道府県名と県庁所在地名が「違う」19のペアを攻略せよ！ ～</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="gallery-btn" class="header-btn secondary" title="19の異名ペア一覧を見る">
+            <span class="icon">📖</span>
+            <span class="label">復習図鑑</span>
+          </button>
+          <button id="sound-btn" class="header-btn active" title="効果音のON/OFF">
+            <span class="icon">🔊</span>
+            <span class="label">効果音</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Game Controls & Dashboard -->
+      <section class="dashboard-section">
+        <div class="difficulty-picker">
+          <span class="picker-label">出題数:</span>
+          <button class="diff-btn active" data-count="6">
+            <span class="diff-title">かんたん</span>
+            <span class="diff-sub">6ペア (12枚)</span>
+          </button>
+          <button class="diff-btn" data-count="10">
+            <span class="diff-title">ふつう</span>
+            <span class="diff-sub">10ペア (20枚)</span>
+          </button>
+          <button class="diff-btn" data-count="19">
+            <span class="diff-title">全制覇！</span>
+            <span class="diff-sub">19ペア (38枚)</span>
+          </button>
+        </div>
+
+        <div class="stats-card">
+          <div class="stat-box">
+            <span class="stat-icon">⏱️</span>
+            <div class="stat-info">
+              <span class="stat-label">経過時間</span>
+              <span id="timer-display" class="stat-value">00:00</span>
+            </div>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-icon">🔄</span>
+            <div class="stat-info">
+              <span class="stat-label">めくった回数</span>
+              <span id="moves-display" class="stat-value">0 回</span>
+            </div>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-icon">✨</span>
+            <div class="stat-info">
+              <span class="stat-label">揃えたペア</span>
+              <span id="pairs-display" class="stat-value">0 / 6</span>
+            </div>
+          </div>
+
+          <div class="stat-box combo-box" id="combo-box">
+            <span class="combo-fire">🔥</span>
+            <span id="combo-display" class="combo-text">連鎖 0</span>
+          </div>
+
+          <button id="restart-btn" class="restart-action-btn">
+            <span class="btn-icon">🔁</span>
+            <span>やり直す</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Game Board -->
+      <main class="game-board-wrapper">
+        <div id="game-board" class="game-board grid-6">
+          <!-- Cards injected via JS -->
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>💡 ヒント: 都道府県カード（紺色）と県庁所在地カード（朱色）を1枚ずつ合わせて正解ペアを作ろう！</p>
+      </footer>
+    </div>
+
+    <!-- Match Celebration Modal -->
+    <div id="match-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card match-popup">
+        <div class="match-badge-header">
+          <span class="match-sparkle">✨</span>
+          <h2>正解ペア成立！</h2>
+        </div>
+
+        <div class="matched-pair-display">
+          <div class="mini-card pref">
+            <span class="tag">都道府県</span>
+            <span id="match-pref-name" class="name">北海道</span>
+            <span id="match-pref-reading" class="reading">ほっかいどう</span>
+          </div>
+          <span class="match-arrow">↔</span>
+          <div class="mini-card cap">
+            <span class="tag">県庁所在地</span>
+            <span id="match-cap-name" class="name">札幌市</span>
+            <span id="match-cap-reading" class="reading">さっぽろし</span>
+          </div>
+        </div>
+
+        <div class="match-tip-box">
+          <span class="tip-icon">💡</span>
+          <p id="match-tip-text" class="tip-text">北海道の道庁所在地は「札幌市」！</p>
+        </div>
+
+        <button id="match-next-btn" class="modal-primary-btn">次へ進む</button>
+      </div>
+    </div>
+
+    <!-- Game Victory Modal -->
+    <div id="win-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card win-popup text-center">
+        <div class="win-crown">👑</div>
+        <h2 class="win-title">GAME CLEAR!</h2>
+        <p class="win-sub">素晴らしい！すべての異名ペアを完全攻略しました！</p>
+
+        <div class="win-rank-badge" id="win-rank">Sランク (完璧！)</div>
+
+        <div class="win-stats-grid">
+          <div class="win-stat">
+            <span class="label">クリア時間</span>
+            <span id="win-time" class="val">01:23</span>
+          </div>
+          <div class="win-stat">
+            <span class="label">総手数</span>
+            <span id="win-moves" class="val">12 回</span>
+          </div>
+          <div class="win-stat">
+            <span class="label">最大連鎖</span>
+            <span id="win-combo" class="val">3 連続</span>
+          </div>
+        </div>
+
+        <div class="win-btn-group">
+          <button id="win-restart-btn" class="modal-primary-btn">もう一度遊ぶ</button>
+          <button id="win-gallery-btn" class="modal-secondary-btn">復習図鑑を見る</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flashcard Gallery Modal -->
+    <div id="gallery-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card gallery-popup">
+        <button class="gallery-close-btn" id="gallery-close">&times;</button>
+        <div class="gallery-header">
+          <h2>📖 異名県庁所在地 復習図鑑 (19ペア)</h2>
+          <p>都道府県名と県庁所在地名が異なる全19エリアの暗記メモ</p>
+        </div>
+
+        <div class="gallery-controls">
+          <input type="text" id="gallery-search" placeholder="都道府県や県庁所在地で検索..." aria-label="Search prefectures" />
+          <div class="gallery-filter-chips">
+            <button class="chip active" data-region="all">すべて (19)</button>
+            <button class="chip" data-region="hokkaido_tohoku">北海道・東北</button>
+            <button class="chip" data-region="kanto">関東</button>
+            <button class="chip" data-region="chubu">中部</button>
+            <button class="chip" data-region="kansai">関西</button>
+            <button class="chip" data-region="chugoku_shikoku">中国・四国</button>
+            <button class="chip" data-region="kyushu_okinawa">九州・沖縄</button>
+          </div>
+        </div>
+
+        <div class="gallery-grid" id="gallery-grid">
+          <!-- Gallery cards rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
