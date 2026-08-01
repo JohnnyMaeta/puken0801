@@ -127,6 +127,34 @@
       .header-right {
         display: flex;
         gap: 0.6rem;
+        align-items: center;
+      }
+
+      .player-input-box {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+      }
+
+      .player-input-box label {
+        color: var(--accent-gold);
+        font-weight: 700;
+      }
+
+      .player-input-box input {
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        font-family: var(--font-main);
+        font-size: 0.85rem;
+        font-weight: 700;
+        width: 110px;
+        outline: none;
       }
 
       .header-btn {
@@ -638,7 +666,7 @@
       .win-sub {
         color: var(--text-muted);
         font-size: 0.9rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
       }
 
       .win-rank-badge {
@@ -649,8 +677,19 @@
         border-radius: 30px;
         background: linear-gradient(135deg, #10b981, #059669);
         color: #ffffff;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      }
+
+      .sheet-status-toast {
+        font-size: 0.85rem;
+        color: #34d399;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+        display: none;
       }
 
       .win-stats-grid {
@@ -833,6 +872,11 @@
         </div>
 
         <div class="header-right">
+          <div class="player-input-box" title="記録に残すおなまえを入力してね">
+            <label for="player-name-input">👤 なまえ:</label>
+            <input type="text" id="player-name-input" placeholder="ななしさん" maxlength="10" />
+          </div>
+
           <button id="gallery-btn" class="header-btn secondary" title="19の異名ペア一覧を見る">
             <span class="icon">📖</span>
             <span class="label">復習図鑑</span>
@@ -848,15 +892,15 @@
       <section class="dashboard-section">
         <div class="difficulty-picker">
           <span class="picker-label">出題数:</span>
-          <button class="diff-btn active" data-count="6">
+          <button class="diff-btn active" data-count="6" data-label="かんたん(6ペア)">
             <span class="diff-title">かんたん</span>
             <span class="diff-sub">6ペア (12枚)</span>
           </button>
-          <button class="diff-btn" data-count="10">
+          <button class="diff-btn" data-count="10" data-label="ふつう(10ペア)">
             <span class="diff-title">ふつう</span>
             <span class="diff-sub">10ペア (20枚)</span>
           </button>
-          <button class="diff-btn" data-count="19">
+          <button class="diff-btn" data-count="19" data-label="全制覇(19ペア)">
             <span class="diff-title">全制覇！</span>
             <span class="diff-sub">19ペア (38枚)</span>
           </button>
@@ -945,12 +989,16 @@
 
     <!-- Game Victory Modal -->
     <div id="win-modal" class="modal-overlay" aria-hidden="true">
-      <div class="modal-card win-popup style-text-center">
+      <div class="modal-card win-popup style-text-center" style="text-align: center;">
         <div class="win-crown">👑</div>
         <h2 class="win-title">GAME CLEAR!</h2>
         <p class="win-sub">素晴らしい！すべての異名ペアを完全攻略しました！</p>
 
         <div class="win-rank-badge" id="win-rank">Sランク (完璧！)</div>
+
+        <div id="sheet-status" class="sheet-status-toast">
+          📝 スプレッドシートに記録を保存しました！
+        </div>
 
         <div class="win-stats-grid">
           <div class="win-stat">
@@ -1311,6 +1359,7 @@
 
       // State variables
       let currentPairCount = 6;
+      let currentModeLabel = 'かんたん(6ペア)';
       let cards = [];
       let flippedCards = [];
       let matchedPairsCount = 0;
@@ -1330,6 +1379,7 @@
       const pairsDisplay = document.getElementById('pairs-display');
       const comboBox = document.getElementById('combo-box');
       const comboDisplay = document.getElementById('combo-display');
+      const playerNameInput = document.getElementById('player-name-input');
 
       const diffBtns = document.querySelectorAll('.diff-btn');
       const restartBtn = document.getElementById('restart-btn');
@@ -1341,6 +1391,7 @@
       const winModal = document.getElementById('win-modal');
       const winRestartBtn = document.getElementById('win-restart-btn');
       const winGalleryBtn = document.getElementById('win-gallery-btn');
+      const sheetStatusToast = document.getElementById('sheet-status');
 
       const galleryModal = document.getElementById('gallery-modal');
       const galleryBtn = document.getElementById('gallery-btn');
@@ -1349,10 +1400,21 @@
       const gallerySearch = document.getElementById('gallery-search');
 
       document.addEventListener('DOMContentLoaded', () => {
+        initPlayerName();
         initEvents();
         initGallery();
         startNewGame();
       });
+
+      function initPlayerName() {
+        const savedName = localStorage.getItem('pref_game_player_name');
+        if (savedName) {
+          playerNameInput.value = savedName;
+        }
+        playerNameInput.addEventListener('change', () => {
+          localStorage.setItem('pref_game_player_name', playerNameInput.value.trim());
+        });
+      }
 
       function initEvents() {
         diffBtns.forEach(btn => {
@@ -1360,6 +1422,7 @@
             diffBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentPairCount = parseInt(btn.getAttribute('data-count'));
+            currentModeLabel = btn.getAttribute('data-label') || `${currentPairCount}ペア`;
             startNewGame();
           });
         });
@@ -1394,6 +1457,7 @@
         maxComboCount = 0;
         flippedCards = [];
         isBoardLocked = false;
+        sheetStatusToast.style.display = 'none';
 
         updateDashboardUI();
 
@@ -1556,26 +1620,59 @@
 
         const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
         const secs = String(timerSeconds % 60).padStart(2, '0');
+        const clearTimeText = `${mins}:${secs}`;
 
-        document.getElementById('win-time').textContent = `${mins}:${secs}`;
+        document.getElementById('win-time').textContent = clearTimeText;
         document.getElementById('win-moves').textContent = `${movesCount} 回`;
         document.getElementById('win-combo').textContent = `${maxComboCount} 連続`;
 
         const rankEl = document.getElementById('win-rank');
         const ratio = movesCount / currentPairCount;
+        let rankText = 'Sランク';
 
         if (ratio <= 1.5) {
+          rankText = 'Sランク';
           rankEl.textContent = '🌟 Sランク (神暗記！)';
           rankEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
         } else if (ratio <= 2.2) {
+          rankText = 'Aランク';
           rankEl.textContent = '👍 Aランク (合格！)';
           rankEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
         } else {
+          rankText = 'Bランク';
           rankEl.textContent = '🔰 Bランク (もう少し！)';
           rankEl.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
         }
 
         winModal.classList.add('active');
+
+        // Save play record to Google Spreadsheet via Apps Script
+        saveRecordToSpreadsheet({
+          nickname: playerNameInput.value.trim() || 'ななしさん',
+          modeLabel: currentModeLabel,
+          clearTime: clearTimeText,
+          moves: movesCount,
+          maxCombo: maxComboCount,
+          rank: rankText
+        });
+      }
+
+      function saveRecordToSpreadsheet(recordData) {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success) {
+                sheetStatusToast.style.display = 'block';
+                sheetStatusToast.textContent = '📝 スプレッドシート（プレイ記録シート）に結果を保存しました！';
+              } else {
+                console.log('Sheet record save notice:', res);
+              }
+            })
+            .withFailureHandler((err) => {
+              console.warn('GAS Save Error:', err);
+            })
+            .savePlayRecord(recordData);
+        }
       }
 
       function initGallery() {
