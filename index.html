@@ -2,7 +2,6 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>都道府県＆県庁所在地 神経衰弱 | 異名ペア19完全攻略</title>
     <meta name="description" content="都道府県名と県庁所在地名が異なる全国19の都道府県だけを集めた神経衰弱ゲーム！楽しく遊んで完全暗記しよう！" />
@@ -12,7 +11,809 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;800&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      :root {
+        --bg-main: #0c101c;
+        --bg-card-bg: #141b2d;
+        --bg-modal: rgba(12, 16, 28, 0.88);
+
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --text-dim: #64748b;
+
+        --pref-blue-bg: linear-gradient(145deg, #1e293b, #0f172a);
+        --pref-blue-border: #38bdf8;
+        --pref-blue-text: #7dd3fc;
+
+        --cap-red-bg: linear-gradient(145deg, #311818, #180c0c);
+        --cap-red-border: #f43f5e;
+        --cap-red-text: #fda4af;
+
+        --accent-gold: #f59e0b;
+        --accent-green: #10b981;
+        --accent-purple: #8b5cf6;
+
+        --font-main: 'Zen Maru Gothic', sans-serif;
+        --font-serif: 'Shippori Mincho', serif;
+
+        --radius-card: 14px;
+        --radius-btn: 10px;
+
+        --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.25);
+        --transition-flip: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+
+      html, body {
+        width: 100%;
+        min-height: 100vh;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        font-family: var(--font-main);
+        overflow-x: hidden;
+      }
+
+      #confetti-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 300;
+      }
+
+      .app-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+      }
+
+      .logo-badge {
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg, var(--accent-gold), #d97706);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      }
+
+      .main-title {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        background: linear-gradient(120deg, #ffffff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .sub-title {
+        font-size: 0.75rem;
+        color: var(--accent-gold);
+        display: block;
+      }
+
+      .header-right {
+        display: flex;
+        gap: 0.6rem;
+      }
+
+      .header-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text-main);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-family: var(--font-main);
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .header-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .header-btn.secondary {
+        border-color: rgba(245, 158, 11, 0.4);
+        color: var(--accent-gold);
+      }
+
+      .header-btn.active {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: var(--accent-green);
+        color: #34d399;
+      }
+
+      /* Dashboard Section */
+      .dashboard-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .difficulty-picker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        background: var(--bg-card-bg);
+        padding: 0.6rem 1rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        flex-wrap: wrap;
+      }
+
+      .picker-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-right: 0.25rem;
+      }
+
+      .diff-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+        padding: 0.5rem 1.25rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .diff-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+      }
+
+      .diff-btn.active {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border-color: #60a5fa;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      }
+
+      .diff-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+
+      .diff-sub {
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+
+      .stats-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-card-bg);
+        padding: 0.9rem 1.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .stat-box {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .stat-icon {
+        font-size: 1.25rem;
+      }
+
+      .stat-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-dim);
+      }
+
+      .stat-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-main);
+      }
+
+      .combo-box {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        opacity: 0.5;
+        transition: all 0.3s ease;
+      }
+
+      .combo-box.active {
+        opacity: 1;
+        background: rgba(245, 158, 11, 0.25);
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        transform: scale(1.05);
+      }
+
+      .combo-text {
+        font-weight: 800;
+        color: var(--accent-gold);
+        font-size: 0.9rem;
+      }
+
+      .restart-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .restart-action-btn:hover {
+        background: rgba(239, 68, 68, 0.25);
+        color: #ffffff;
+      }
+
+      /* Game Board */
+      .game-board-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1000px;
+        margin-bottom: 2rem;
+      }
+
+      .game-board {
+        display: grid;
+        gap: 1rem;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .grid-6 {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 720px;
+      }
+
+      .grid-10 {
+        grid-template-columns: repeat(5, 1fr);
+        max-width: 860px;
+      }
+
+      .grid-19 {
+        grid-template-columns: repeat(6, 1fr);
+        max-width: 1000px;
+      }
+
+      /* Card Element */
+      .card-item {
+        aspect-ratio: 4 / 5;
+        position: relative;
+        transform-style: preserve-3d;
+        cursor: pointer;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .card-item:hover {
+        transform: translateY(-4px) scale(1.02);
+      }
+
+      .card-item.flipped {
+        transform: rotateY(180deg);
+      }
+
+      .card-item.matched {
+        transform: rotateY(180deg) scale(0.96);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .card-face {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: var(--radius-card);
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        border: 2px solid transparent;
+      }
+
+      /* Card Back */
+      .card-back {
+        background: var(--bg-card-bg);
+        background-image: 
+          radial-gradient(circle, rgba(245, 158, 11, 0.15) 1px, transparent 1px),
+          linear-gradient(135deg, #1e293b, #0f172a);
+        background-size: 16px 16px, 100% 100%;
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .card-back-pattern {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--accent-gold);
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+      }
+
+      /* Card Front */
+      .card-front {
+        transform: rotateY(180deg);
+      }
+
+      .card-front.pref-card {
+        background: var(--pref-blue-bg);
+        border-color: var(--pref-blue-border);
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+      }
+
+      .card-front.cap-card {
+        background: var(--cap-red-bg);
+        border-color: var(--cap-red-border);
+        box-shadow: 0 0 15px rgba(244, 63, 94, 0.25);
+      }
+
+      .card-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 10px;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+      }
+
+      .pref-card .card-badge {
+        background: rgba(56, 189, 248, 0.2);
+        color: var(--pref-blue-text);
+      }
+
+      .cap-card .card-badge {
+        background: rgba(244, 63, 94, 0.2);
+        color: var(--cap-red-text);
+      }
+
+      .card-reading {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-bottom: 0.1rem;
+      }
+
+      .card-name {
+        font-family: var(--font-serif);
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-align: center;
+      }
+
+      .pref-card .card-name {
+        color: #ffffff;
+      }
+
+      .cap-card .card-name {
+        color: #ffffff;
+      }
+
+      .card-symbol {
+        font-size: 1.1rem;
+        margin-top: 0.4rem;
+      }
+
+      /* Modals */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: var(--bg-modal);
+        backdrop-filter: blur(8px);
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-card {
+        background: var(--bg-card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 520px;
+        padding: 2rem;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.active .modal-card {
+        transform: translateY(0);
+      }
+
+      /* Match Popup Modal */
+      .match-popup {
+        border-color: rgba(245, 158, 11, 0.4);
+      }
+
+      .match-badge-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .match-badge-header h2 {
+        font-family: var(--font-serif);
+        font-size: 1.4rem;
+        color: var(--accent-gold);
+      }
+
+      .matched-pair-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        margin-bottom: 1.25rem;
+        background: rgba(0,0,0,0.3);
+        padding: 1rem;
+        border-radius: 12px;
+      }
+
+      .mini-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+      }
+
+      .mini-card.pref {
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid var(--pref-blue-border);
+      }
+
+      .mini-card.cap {
+        background: rgba(244, 63, 94, 0.15);
+        border: 1px solid var(--cap-red-border);
+      }
+
+      .mini-card .tag {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+      }
+
+      .mini-card .name {
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      .mini-card .reading {
+        font-size: 0.7rem;
+        color: var(--text-dim);
+      }
+
+      .match-arrow {
+        font-size: 1.5rem;
+        color: var(--accent-gold);
+      }
+
+      .match-tip-box {
+        display: flex;
+        gap: 0.75rem;
+        background: rgba(245, 158, 11, 0.08);
+        border-left: 3px solid var(--accent-gold);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .tip-text {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-main);
+      }
+
+      .modal-primary-btn {
+        width: 100%;
+        padding: 0.85rem;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      }
+
+      .modal-primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+      }
+
+      .modal-secondary-btn {
+        width: 100%;
+        padding: 0.85rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-main);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 0.6rem;
+        transition: all 0.2s ease;
+      }
+
+      .modal-secondary-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      /* Win Modal */
+      .win-crown {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .win-title {
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        color: var(--accent-gold);
+        margin-bottom: 0.4rem;
+      }
+
+      .win-sub {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .win-rank-badge {
+        display: inline-block;
+        font-size: 1.25rem;
+        font-weight: 800;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      }
+
+      .win-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        background: rgba(0,0,0,0.3);
+        padding: 1rem;
+        border-radius: 12px;
+      }
+
+      .win-stat {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .win-stat .label {
+        font-size: 0.7rem;
+        color: var(--text-dim);
+      }
+
+      .win-stat .val {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-main);
+      }
+
+      /* Gallery Modal */
+      .gallery-popup {
+        max-width: 800px;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+      }
+
+      .gallery-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1.25rem;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.75rem;
+        cursor: pointer;
+      }
+
+      .gallery-header h2 {
+        font-family: var(--font-serif);
+        font-size: 1.4rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .gallery-header p {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .gallery-controls {
+        margin-bottom: 1.25rem;
+      }
+
+      #gallery-search {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        font-family: var(--font-main);
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .gallery-filter-chips {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        cursor: pointer;
+      }
+
+      .chip.active {
+        background: var(--accent-gold);
+        color: #000000;
+        font-weight: 700;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .gallery-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .gallery-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .gallery-pair {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+      }
+
+      .gallery-pair .pref-txt {
+        color: var(--pref-blue-text);
+      }
+
+      .gallery-pair .cap-txt {
+        color: var(--cap-red-text);
+      }
+
+      .gallery-tip {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .app-footer {
+        text-align: center;
+        padding: 1rem 0;
+        font-size: 0.85rem;
+        color: var(--text-dim);
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 650px) {
+        .grid-6, .grid-10, .grid-19 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .main-title {
+          font-size: 1.3rem;
+        }
+
+        .stats-card {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- Canvas for Confetti -->
@@ -144,7 +945,7 @@
 
     <!-- Game Victory Modal -->
     <div id="win-modal" class="modal-overlay" aria-hidden="true">
-      <div class="modal-card win-popup text-center">
+      <div class="modal-card win-popup style-text-center">
         <div class="win-crown">👑</div>
         <h2 class="win-title">GAME CLEAR!</h2>
         <p class="win-sub">素晴らしい！すべての異名ペアを完全攻略しました！</p>
@@ -201,6 +1002,700 @@
       </div>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <!-- Application Script -->
+    <script>
+      // 19 Prefectures Data
+      const PREFECTURES_DATA = [
+        {
+          id: 'hokkaido',
+          pref: '北海道',
+          capital: '札幌市',
+          readingPref: 'ほっかいどう',
+          readingCap: 'さっぽろし',
+          region: 'hokkaido_tohoku',
+          regionLabel: '北海道・東北',
+          symbol: '🏯',
+          tip: '北海道の道庁所在地は「札幌（さっぽろ）市」！時計台や大通公園、雪まつりで有名です。'
+        },
+        {
+          id: 'iwate',
+          pref: '岩手県',
+          capital: '盛岡市',
+          readingPref: 'いわてけん',
+          readingCap: 'もりおかし',
+          region: 'hokkaido_tohoku',
+          regionLabel: '北海道・東北',
+          symbol: '🍜',
+          tip: '岩手県の県庁所在地は「盛岡（もりおか）市」！わんこそばや盛岡冷麺、中津川の風情が有名。'
+        },
+        {
+          id: 'miyagi',
+          pref: '宮城県',
+          capital: '仙台市',
+          readingPref: 'みやぎけん',
+          readingCap: 'せんだいし',
+          region: 'hokkaido_tohoku',
+          regionLabel: '北海道・東北',
+          symbol: '🌙',
+          tip: '宮城県の県庁所在地は「仙台（せんだい）市」！「杜の都」と呼ばれ、伊達政宗ゆかりの青葉城があります。'
+        },
+        {
+          id: 'ibaraki',
+          pref: '茨城県',
+          capital: '水戸市',
+          readingPref: 'いばらきけん',
+          readingCap: 'みとし',
+          region: 'kanto',
+          regionLabel: '関東',
+          symbol: '🌺',
+          tip: '茨城県の県庁所在地は「水戸（みと）市」！水戸黄門、納豆、日本三名園の偕楽園（かいらくえん）が名物。'
+        },
+        {
+          id: 'tochigi',
+          pref: '栃木県',
+          capital: '宇都宮市',
+          readingPref: 'とちぎけん',
+          readingCap: 'うつのみやし',
+          region: 'kanto',
+          regionLabel: '関東',
+          symbol: '🥟',
+          tip: '栃木県の県庁所在地は「宇都宮（うつのみや）市」！日本有数の餃子の街として全国に知られています。'
+        },
+        {
+          id: 'gunma',
+          pref: '群馬県',
+          capital: '前橋市',
+          readingPref: 'ぐんまけん',
+          readingCap: 'まえばしし',
+          region: 'kanto',
+          regionLabel: '関東',
+          tip: '群馬県の県庁所在地は「前橋（まえばし）市」！高崎市と並ぶ中心都市で、赤城山の麓に位置します。'
+        },
+        {
+          id: 'saitama',
+          pref: '埼玉県',
+          capital: 'さいたま市',
+          readingPref: 'さいたまけん',
+          readingCap: 'さいたまし',
+          region: 'kanto',
+          regionLabel: '関東',
+          tip: '埼玉県の県庁所在地はひらがな表記の「さいたま市」！浦和や大宮などが合併して誕生しました。'
+        },
+        {
+          id: 'tokyo',
+          pref: '東京都',
+          capital: '新宿区',
+          readingPref: 'とうきょうと',
+          readingCap: 'しんじゅくく',
+          region: 'kanto',
+          regionLabel: '関東',
+          symbol: '🏙️',
+          tip: '東京都の都庁所在地は「新宿（しんじゅく）区」！超高層ビル街の中に東京都庁本庁舎がそびえ立ちます。'
+        },
+        {
+          id: 'kanagawa',
+          pref: '神奈川県',
+          capital: '横浜市',
+          readingPref: 'かながわけん',
+          readingCap: 'よこはまし',
+          region: 'kanto',
+          regionLabel: '関東',
+          symbol: '⚓',
+          tip: '神奈川県の県庁所在地は「横浜（よこはま）市」！みなとみらいや横浜中華街が人気の開港都市。'
+        },
+        {
+          id: 'ishikawa',
+          pref: '石川県',
+          capital: '金沢市',
+          readingPref: 'いしかわけん',
+          readingCap: 'かなざわし',
+          region: 'chubu',
+          regionLabel: '中部',
+          symbol: '🏯',
+          tip: '石川県の県庁所在地は「金沢（かなざわ）市」！兼六園やひがし茶屋街など加賀百万石の歴史が息づく城下町。'
+        },
+        {
+          id: 'yamanashi',
+          pref: '山梨県',
+          capital: '甲府市',
+          readingPref: 'やまなしけん',
+          readingCap: 'こうふし',
+          region: 'chubu',
+          regionLabel: '中部',
+          symbol: '🍇',
+          tip: '山梨県の県庁所在地は「甲府（こうふ）市」！武田信玄公のホームグラウンドで、ほうとうや葡萄の名産地。'
+        },
+        {
+          id: 'aichi',
+          pref: '愛知県',
+          capital: '名古屋市',
+          readingPref: 'あいちけん',
+          readingCap: 'なごやし',
+          region: 'chubu',
+          regionLabel: '中部',
+          symbol: '🏰',
+          tip: '愛知県の県庁所在地は「名古屋（なごや）市」！金のシャチホコの名古屋城、ひつまぶしや味噌カツが有名。'
+        },
+        {
+          id: 'mie',
+          pref: '三重県',
+          capital: '津市',
+          readingPref: 'みえけん',
+          readingCap: 'つし',
+          region: 'kansai',
+          regionLabel: '関西',
+          tip: '三重県の県庁所在地は「津（つ）市」！日本一名前が短い（漢字1文字・ひらがな1文字）県庁所在地。'
+        },
+        {
+          id: 'shiga',
+          pref: '滋賀県',
+          capital: '大津市',
+          readingPref: 'しがけん',
+          readingCap: 'おおつし',
+          region: 'kansai',
+          regionLabel: '関西',
+          symbol: '⛵',
+          tip: '滋賀県の県庁所在地は「大津（おおつ）市」！日本最大の湖・琵琶湖（びわこ）の南端に広がります。'
+        },
+        {
+          id: 'hyogo',
+          pref: '兵庫県',
+          capital: '神戸市',
+          readingPref: 'ひょうごけん',
+          readingCap: 'こうべし',
+          region: 'kansai',
+          regionLabel: '関西',
+          symbol: '🚢',
+          tip: '兵庫県の県庁所在地は「神戸（こうべ）市」！港町の異国情緒と六甲山からの美しい夜景が魅力。'
+        },
+        {
+          id: 'shimane',
+          pref: '島根県',
+          capital: '松江市',
+          readingPref: 'しまねけん',
+          readingCap: 'まつえし',
+          region: 'chugoku_shikoku',
+          regionLabel: '中国・四国',
+          symbol: '🌅',
+          tip: '島根県の県庁所在地は「松江（まつえ）市」！宍道湖（しんじこ）の夕日と國宝・松江城が美しい水の都。'
+        },
+        {
+          id: 'kagawa',
+          pref: '香川県',
+          capital: '高松市',
+          readingPref: 'かがわけん',
+          readingCap: 'たかまつし',
+          region: 'chugoku_shikoku',
+          regionLabel: '中国・四国',
+          symbol: '🍜',
+          tip: '香川県の県庁所在地は「高松（たかまつ）市」！「讃岐うどん」で有名で、名勝・栗林公園があります。'
+        },
+        {
+          id: 'ehime',
+          pref: '愛媛県',
+          capital: '松山市',
+          readingPref: 'えひめけん',
+          readingCap: 'まつやまし',
+          region: 'chugoku_shikoku',
+          regionLabel: '中国・四国',
+          symbol: '🍊',
+          tip: '愛媛県の県庁所在地は「松山（まつやま）市」！日本最古の温泉・道後温泉や松山城で親しまれています。'
+        },
+        {
+          id: 'okinawa',
+          pref: '沖縄県',
+          capital: '那覇市',
+          readingPref: 'おきなわけん',
+          readingCap: 'なはし',
+          region: 'kyushu_okinawa',
+          regionLabel: '九州・沖縄',
+          symbol: '🌺',
+          tip: '沖縄県の県庁所在地は「那覇（なは）市」！首里城跡や活気あふれる国際通りがある南国の中心地。'
+        }
+      ];
+
+      // Sound Synthesizer
+      class SoundManager {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+        }
+
+        init() {
+          if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        playFlip() {
+          if (!this.enabled) return;
+          this.init();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        }
+
+        playMatch() {
+          if (!this.enabled) return;
+          this.init();
+          const now = this.ctx.currentTime;
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+            gain.gain.setValueAtTime(0.15, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.25);
+          });
+        }
+
+        playMismatch() {
+          if (!this.enabled) return;
+          this.init();
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(160, now + 0.2);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+
+        playVictory() {
+          if (!this.enabled) return;
+          this.init();
+          const now = this.ctx.currentTime;
+          const fanfare = [
+            { f: 523.25, d: 0.15, t: 0 },
+            { f: 659.25, d: 0.15, t: 0.15 },
+            { f: 783.99, d: 0.15, t: 0.3 },
+            { f: 1046.50, d: 0.4, t: 0.45 }
+          ];
+          fanfare.forEach(n => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(n.f, now + n.t);
+            gain.gain.setValueAtTime(0.2, now + n.t);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + n.t);
+            osc.stop(now + n.t + n.d);
+          });
+        }
+      }
+
+      const soundManager = new SoundManager();
+
+      // State variables
+      let currentPairCount = 6;
+      let cards = [];
+      let flippedCards = [];
+      let matchedPairsCount = 0;
+      let movesCount = 0;
+      let comboCount = 0;
+      let maxComboCount = 0;
+
+      let timerInterval = null;
+      let timerSeconds = 0;
+      let isTimerRunning = false;
+      let isBoardLocked = false;
+
+      // DOM Elements
+      const gameBoard = document.getElementById('game-board');
+      const timerDisplay = document.getElementById('timer-display');
+      const movesDisplay = document.getElementById('moves-display');
+      const pairsDisplay = document.getElementById('pairs-display');
+      const comboBox = document.getElementById('combo-box');
+      const comboDisplay = document.getElementById('combo-display');
+
+      const diffBtns = document.querySelectorAll('.diff-btn');
+      const restartBtn = document.getElementById('restart-btn');
+      const soundBtn = document.getElementById('sound-btn');
+
+      const matchModal = document.getElementById('match-modal');
+      const matchNextBtn = document.getElementById('match-next-btn');
+
+      const winModal = document.getElementById('win-modal');
+      const winRestartBtn = document.getElementById('win-restart-btn');
+      const winGalleryBtn = document.getElementById('win-gallery-btn');
+
+      const galleryModal = document.getElementById('gallery-modal');
+      const galleryBtn = document.getElementById('gallery-btn');
+      const galleryClose = document.getElementById('gallery-close');
+      const galleryGrid = document.getElementById('gallery-grid');
+      const gallerySearch = document.getElementById('gallery-search');
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initEvents();
+        initGallery();
+        startNewGame();
+      });
+
+      function initEvents() {
+        diffBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            diffBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPairCount = parseInt(btn.getAttribute('data-count'));
+            startNewGame();
+          });
+        });
+
+        restartBtn.addEventListener('click', () => startNewGame());
+
+        soundBtn.addEventListener('click', () => {
+          soundManager.enabled = !soundManager.enabled;
+          soundBtn.classList.toggle('active', soundManager.enabled);
+          soundBtn.querySelector('.label').textContent = soundManager.enabled ? '効果音' : '消音';
+        });
+
+        matchNextBtn.addEventListener('click', () => matchModal.classList.remove('active'));
+        winRestartBtn.addEventListener('click', () => {
+          winModal.classList.remove('active');
+          startNewGame();
+        });
+        winGalleryBtn.addEventListener('click', () => {
+          winModal.classList.remove('active');
+          openGalleryModal();
+        });
+
+        galleryBtn.addEventListener('click', () => openGalleryModal());
+        galleryClose.addEventListener('click', () => galleryModal.classList.remove('active'));
+      }
+
+      function startNewGame() {
+        resetTimer();
+        matchedPairsCount = 0;
+        movesCount = 0;
+        comboCount = 0;
+        maxComboCount = 0;
+        flippedCards = [];
+        isBoardLocked = false;
+
+        updateDashboardUI();
+
+        const shuffledData = [...PREFECTURES_DATA].sort(() => 0.5 - Math.random());
+        const selectedPrefectures = shuffledData.slice(0, currentPairCount);
+
+        cards = [];
+        selectedPrefectures.forEach(item => {
+          cards.push({
+            id: `${item.id}-pref`,
+            pairId: item.id,
+            type: 'pref',
+            name: item.pref,
+            reading: item.readingPref,
+            symbol: '🗺️',
+            data: item
+          });
+          cards.push({
+            id: `${item.id}-cap`,
+            pairId: item.id,
+            type: 'cap',
+            name: item.capital,
+            reading: item.readingCap,
+            symbol: item.symbol || '📍',
+            data: item
+          });
+        });
+
+        for (let i = cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+
+        gameBoard.className = `game-board grid-${currentPairCount}`;
+        gameBoard.innerHTML = '';
+
+        cards.forEach((card, index) => {
+          const cardEl = document.createElement('div');
+          cardEl.className = 'card-item';
+          cardEl.setAttribute('data-index', index);
+
+          cardEl.innerHTML = `
+            <div class="card-face card-back">
+              <div class="card-back-pattern">❓</div>
+            </div>
+            <div class="card-face card-front ${card.type === 'pref' ? 'pref-card' : 'cap-card'}">
+              <span class="card-badge">${card.type === 'pref' ? '都道府県' : '県庁所在地'}</span>
+              <span class="card-reading">${card.reading}</span>
+              <h3 class="card-name">${card.name}</h3>
+              <span class="card-symbol">${card.symbol}</span>
+            </div>
+          `;
+
+          cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
+          gameBoard.appendChild(cardEl);
+        });
+      }
+
+      function handleCardClick(cardEl, index) {
+        if (isBoardLocked) return;
+        if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+
+        if (!isTimerRunning) {
+          startTimer();
+        }
+
+        soundManager.playFlip();
+        cardEl.classList.add('flipped');
+        flippedCards.push({ el: cardEl, data: cards[index] });
+
+        if (flippedCards.length === 2) {
+          movesCount++;
+          updateDashboardUI();
+          checkMatch();
+        }
+      }
+
+      function checkMatch() {
+        isBoardLocked = true;
+        const [card1, card2] = flippedCards;
+
+        if (card1.data.pairId === card2.data.pairId) {
+          soundManager.playMatch();
+          comboCount++;
+          if (comboCount > maxComboCount) maxComboCount = comboCount;
+
+          card1.el.classList.add('matched');
+          card2.el.classList.add('matched');
+
+          matchedPairsCount++;
+          updateDashboardUI();
+
+          showMatchPopup(card1.data.data);
+
+          flippedCards = [];
+          isBoardLocked = false;
+
+          if (matchedPairsCount === currentPairCount) {
+            setTimeout(() => triggerVictory(), 800);
+          }
+        } else {
+          soundManager.playMismatch();
+          comboCount = 0;
+          updateDashboardUI();
+
+          setTimeout(() => {
+            card1.el.classList.remove('flipped');
+            card2.el.classList.remove('flipped');
+            flippedCards = [];
+            isBoardLocked = false;
+          }, 900);
+        }
+      }
+
+      function updateDashboardUI() {
+        movesDisplay.textContent = `${movesCount} 回`;
+        pairsDisplay.textContent = `${matchedPairsCount} / ${currentPairCount}`;
+
+        if (comboCount >= 2) {
+          comboBox.classList.add('active');
+          comboDisplay.textContent = `連鎖 x${comboCount} 🔥`;
+        } else {
+          comboBox.classList.remove('active');
+          comboDisplay.textContent = `連鎖 0`;
+        }
+      }
+
+      function startTimer() {
+        isTimerRunning = true;
+        timerSeconds = 0;
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+          const secs = String(timerSeconds % 60).padStart(2, '0');
+          timerDisplay.textContent = `${mins}:${secs}`;
+        }, 1000);
+      }
+
+      function resetTimer() {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timerSeconds = 0;
+        timerDisplay.textContent = '00:00';
+      }
+
+      function showMatchPopup(prefData) {
+        document.getElementById('match-pref-name').textContent = prefData.pref;
+        document.getElementById('match-pref-reading').textContent = prefData.readingPref;
+        document.getElementById('match-cap-name').textContent = prefData.capital;
+        document.getElementById('match-cap-reading').textContent = prefData.readingCap;
+        document.getElementById('match-tip-text').textContent = prefData.tip;
+
+        matchModal.classList.add('active');
+      }
+
+      function triggerVictory() {
+        resetTimer();
+        soundManager.playVictory();
+        launchConfetti();
+
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+
+        document.getElementById('win-time').textContent = `${mins}:${secs}`;
+        document.getElementById('win-moves').textContent = `${movesCount} 回`;
+        document.getElementById('win-combo').textContent = `${maxComboCount} 連続`;
+
+        const rankEl = document.getElementById('win-rank');
+        const ratio = movesCount / currentPairCount;
+
+        if (ratio <= 1.5) {
+          rankEl.textContent = '🌟 Sランク (神暗記！)';
+          rankEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+        } else if (ratio <= 2.2) {
+          rankEl.textContent = '👍 Aランク (合格！)';
+          rankEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        } else {
+          rankEl.textContent = '🔰 Bランク (もう少し！)';
+          rankEl.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        }
+
+        winModal.classList.add('active');
+      }
+
+      function initGallery() {
+        renderGallery(PREFECTURES_DATA);
+
+        const chips = document.querySelectorAll('.chip');
+        chips.forEach(chip => {
+          chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            filterGallery();
+          });
+        });
+
+        gallerySearch.addEventListener('input', () => filterGallery());
+      }
+
+      function filterGallery() {
+        const query = gallerySearch.value.trim().toLowerCase();
+        const activeChip = document.querySelector('.chip.active');
+        const region = activeChip ? activeChip.getAttribute('data-region') : 'all';
+
+        const filtered = PREFECTURES_DATA.filter(item => {
+          const matchRegion = region === 'all' || item.region === region;
+          const matchQuery = !query || 
+            item.pref.includes(query) || 
+            item.capital.includes(query) || 
+            item.readingPref.includes(query) || 
+            item.readingCap.includes(query);
+          return matchRegion && matchQuery;
+        });
+
+        renderGallery(filtered);
+      }
+
+      function renderGallery(items) {
+        galleryGrid.innerHTML = '';
+        if (items.length === 0) {
+          galleryGrid.innerHTML = '<p style="color: var(--text-dim); grid-column: 1/-1; text-align: center; padding: 2rem;">該当する都道府県が見つかりません</p>';
+          return;
+        }
+
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'gallery-card';
+          card.innerHTML = `
+            <div class="gallery-card-header">
+              <span style="font-size: 0.7rem; color: var(--accent-gold);">${item.regionLabel}</span>
+              <span>${item.symbol || '📍'}</span>
+            </div>
+            <div class="gallery-pair">
+              <span class="pref-txt">${item.pref}</span>
+              <span style="color: var(--text-dim); font-size: 0.8rem;">→</span>
+              <span class="cap-txt">${item.capital}</span>
+            </div>
+            <p class="gallery-tip">${item.tip}</p>
+          `;
+          galleryGrid.appendChild(card);
+        });
+      }
+
+      function openGalleryModal() {
+        galleryModal.classList.add('active');
+      }
+
+      function launchConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#f59e0b', '#38bdf8', '#f43f5e', '#10b981', '#8b5cf6', '#ffffff'];
+
+        for (let i = 0; i < 120; i++) {
+          particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.5) * 14 - 3,
+            size: 6 + Math.random() * 8,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            opacity: 1,
+            rotation: Math.random() * 360,
+            vRot: (Math.random() - 0.5) * 10
+          });
+        }
+
+        let frameCount = 0;
+        function animate() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          frameCount++;
+
+          particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2;
+            p.opacity -= 0.008;
+            p.rotation += p.vRot;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = Math.max(p.opacity, 0);
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+          });
+
+          if (frameCount < 160) {
+            requestAnimationFrame(animate);
+          } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+
+        animate();
+      }
+    </script>
   </body>
 </html>
