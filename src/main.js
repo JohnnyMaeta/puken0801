@@ -2,6 +2,7 @@
    PREFECTURAL CAPITAL CONCENTRATION GAME ENGINE
    ========================================================================== */
 
+import './style.css';
 import { PREFECTURES_DATA } from './data.js';
 import { soundManager } from './sound.js';
 
